@@ -6,10 +6,12 @@ User Interface:
 
 The player is presented with a canvas where they can draw digits (0–9) using their mouse or touch input.
 A simple graphical interface, built using libraries like Tkinter or PyQt, makes the game user-friendly.
+
 Handwriting Recognition with TensorFlow:
 
 A pre-trained TensorFlow model, such as one trained on the MNIST dataset, is used to recognize the digit drawn by the player.
 The model processes the drawing, interprets it as a digit, and displays the prediction.
+
 Game Logic:
 
 The game generates random math problems, such as addition, subtraction, or multiplication, using the recognized digit and a randomly generated number.
@@ -20,6 +22,7 @@ User Submission:
 
 The player uses the canvas again to draw their answer to the problem.
 TensorFlow recognizes the handwritten answer and checks its correctness.
+
 Scoring and Feedback:
 
 The game provides immediate feedback—whether the answer is correct or not—and updates the player's score.
@@ -38,12 +41,14 @@ NumPy and OpenCV:
 
 NumPy is used to process the image data from the drawing canvas, and OpenCV can preprocess the image for better model accuracy (e.g., resizing or thresholding).
 Features of the Game
+
 Interactive AI Experience:
 
 Players get a hands-on demonstration of TensorFlow's capabilities in recognizing handwritten input.
-Educational:
 
+Educational:
 Reinforces math skills while teaching players how machine learning models function.
+
 Customizable Difficulty:
 
 Includes options for different levels of math problems (easy, medium, hard) or additional operations like division.
