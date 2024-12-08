@@ -1,6 +1,5 @@
 import inspect
 import os
-import time
 import tkinter as tk
 from ctypes import windll
 from random import randint, choice
@@ -22,7 +21,8 @@ ANSWER_WIDTH = 780
 ANSWER_HEIGHT = 610
 QUESTION_COUNT = 10
 TIMEOUT_SECONDS = 10
-WAIT_DURATION = 1000
+WAIT_DURATION_CORRECT = 500
+WAIT_DURATION_WRONG = 1500
 BUTTON_WIDTH = 300
 BUTTON_HEIGHT = 100
 PEN_WIDTH = 16
@@ -200,16 +200,16 @@ class CalculatingPKGui:
         if operation == "*":
             num1, num2 = randint(1, 10), randint(1, 10)
             answer = eval(f"{num1} {operation} {num2}")
-            question = f"{num1} {operation} {num2} = ?"
+            question = f"{num1} × {num2} = ?"
             self.answer = answer
             self.question = question
         elif operation == "/":
             num1, num2 = randint(5, 35), randint(1, 9)
             answer = num1 // num2
             if num1 % num2 == 0:
-                question = f"{num1} {operation} {num2} = ?"
+                question = f"{num1} ÷ {num2} = ?"
             else:
-                question = f"{num1} {operation} {num2} = ? ... {num1 % num2}"
+                question = f"{num1} ÷ {num2} = ? ... {num1 % num2}"
         else:
             num1, num2 = randint(1, 20), randint(1, 20)
             num1, num2 = max(num1, num2), min(num1, num2)
@@ -362,6 +362,7 @@ class CalculatingPKGui:
         if ans == self.answer and len(digits) != 0:
             self.correct_answers += 1
             self.ans_canvas.create_image(ANSWER_WIDTH // 2, ANSWER_HEIGHT // 2, image=self.correct_icon)
+            self.window.after(WAIT_DURATION_CORRECT, self.next_question)
         else:
             self.wrong_answers += 1
             self.ans_canvas.create_image(ANSWER_WIDTH // 2, ANSWER_HEIGHT // 2, image=self.wrong_icon)
@@ -369,8 +370,8 @@ class CalculatingPKGui:
                                         text=f"Correct Answer: {self.answer}",
                                         font=("Cambria", 36),
                                         fill="#fc5143")
+            self.window.after(WAIT_DURATION_WRONG, self.next_question)
 
-        self.window.after(WAIT_DURATION, self.next_question)
         
     def update_timer(self):
         if self.timer_id is not None:
