@@ -8,7 +8,7 @@ import time
 
 script_directory = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 WINDOW_TITLE = "Monkey CalculatingPK"
-QUESTION_COUNT = 100
+QUESTION_COUNT = 10
 BUTTON_WIDTH = 300
 BUTTON_HEIGHT = 100
 ANSWER_WIDTH = 780
