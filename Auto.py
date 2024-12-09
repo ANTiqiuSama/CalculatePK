@@ -8,7 +8,7 @@ import time
 
 script_directory = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 WINDOW_TITLE = "Monkey CalculatingPK"
-QUESTION_COUNT = 10
+QUESTION_COUNT = 100
 BUTTON_WIDTH = 300
 BUTTON_HEIGHT = 100
 ANSWER_WIDTH = 780
@@ -26,7 +26,7 @@ QUESTION_REGION_HEIGHT = 80
 WINDOW_WIDTH = 850
 WINDOW_HEIGHT = 1400
 
-WAIT_DURATION = 0.6
+WAIT_DURATION = 1.0
 
 
 def draw_number(num, x, y):
@@ -136,6 +136,7 @@ def main():
     pyautogui.moveTo(start_button_x, start_button_y)
     time.sleep(0.5)
     pyautogui.click()
+    time.sleep(0.5)
 
     for i in range(QUESTION_COUNT):
         # if want to make character data, save original image

@@ -19,7 +19,7 @@ WINDOW_WIDTH = 850
 WINDOW_HEIGHT = 1400
 ANSWER_WIDTH = 780
 ANSWER_HEIGHT = 610
-QUESTION_COUNT = 10
+QUESTION_COUNT = 100
 TIMEOUT_SECONDS = 10
 WAIT_DURATION_CORRECT = 500
 WAIT_DURATION_WRONG = 1500
@@ -124,6 +124,21 @@ def load_background_image(path):
     return ImageTk.PhotoImage(background_image)
 
 
+def rand_num(left, right):
+    if randint(1, 100) >= 30:  # 70% possibility
+        operation = choice(["+", "-", "*", "/"])
+        if operation == "/":
+            num2 = randint(2, 10)
+            num1 = randint(1, 10) * num2
+            return f"({num1} // {num2})"
+        else:
+            num1, num2 = randint(1, 12), randint(1, 12)
+            num1, num2 = max(num1, num2), min(num1, num2)
+            return f"({num1} {operation} {num2})"
+    else:
+        return str(randint(left, right))
+
+
 class CalculatingPKGui:
     def __init__(self, window, recognizer):
         self.recognizer = recognizer
@@ -198,26 +213,30 @@ class CalculatingPKGui:
     def generate_question(self):
         operation = choice(["+", "-", "*", "/"])
         if operation == "*":
-            num1, num2 = randint(1, 10), randint(1, 10)
-            answer = eval(f"{num1} {operation} {num2}")
-            question = f"{num1} × {num2} = ?"
+            num1, num2 = rand_num(1, 10), rand_num(1, 10)
+            answer = eval(f"{num1} * {num2}")
+            question = f"{num1} * {num2} = ?"
             self.answer = answer
             self.question = question
         elif operation == "/":
-            num1, num2 = randint(5, 35), randint(1, 9)
-            answer = num1 // num2
-            if num1 % num2 == 0:
-                question = f"{num1} ÷ {num2} = ?"
+            num2 = rand_num(2, 10)
+            answer = randint(1, 10)
+            num1 = answer * eval(num2)
+            if choice([True, False]):  # add a remainder
+                remainder = randint(1, eval(num2) - 1)
+                question = f"{num1 + remainder} // {num2} = ? ... {remainder}"
             else:
-                question = f"{num1} ÷ {num2} = ? ... {num1 % num2}"
+                question = f"{num1} // {num2} = ?"
+
         else:
-            num1, num2 = randint(1, 20), randint(1, 20)
-            num1, num2 = max(num1, num2), min(num1, num2)
+            num1, num2 = rand_num(1, 20), rand_num(1, 20)
+            if eval(num1) < eval(num2):
+                num1, num2 = num2, num1
             answer = eval(f"{num1} {operation} {num2}")
             question = f"{num1} {operation} {num2} = ?"
 
         self.answer = answer
-        self.question = question
+        self.question = question.replace("*", "×").replace("//", "÷")
 
     def start_game(self):
         self.current_question_index = 0
@@ -338,15 +357,15 @@ class CalculatingPKGui:
         self.canvas.itemconfigure(self.question_text, text=self.question)
         self.canvas.itemconfigure(self.timer_text, text="00 : {:02d}".format(TIMEOUT_SECONDS))
         self.update_timer()
-        
+
         self.accept_submissions = True
 
     def submit_answer(self):
         if not self.accept_submissions:
             return
-        
+
         self.accept_submissions = False
-        
+
         if self.timer_id is not None:
             self.window.after_cancel(self.timer_id)
             self.timer_id = None
@@ -372,7 +391,6 @@ class CalculatingPKGui:
                                         fill="#fc5143")
             self.window.after(WAIT_DURATION_WRONG, self.next_question)
 
-        
     def update_timer(self):
         if self.timer_id is not None:
             self.window.after_cancel(self.timer_id)
