@@ -70,10 +70,10 @@ def split_image(image):
     for col in col_has_pixel:
         if col_sum[col - 1] == 0 or (col != col_sum.shape[0] - 1 and col_sum[col + 1] == 0):
             split_index.append(col)
-    print(f"len(split_index): {len(split_index)}")
+    # print(f"len(split_index): {len(split_index)}")
     i = 0
     while i < len(split_index) - 1:
-        print(f"split_index[{i}]: {split_index[i]}, {split_index[i + 1]}")
+        # print(f"split_index[{i}]: {split_index[i]}, {split_index[i + 1]}")
         result.append(image[:, split_index[i]:split_index[i + 1]])
         i += 2
     return result
