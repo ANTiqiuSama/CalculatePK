@@ -1,7 +1,7 @@
 # Calculating PK
 ## Requirements:
 ```
-pip install numpy tensorflow Pillow opencv-python pygetwindow pyautogui
+pip install numpy tensorflow keras-tuner Pillow opencv-python pygetwindow pyautogui
 ```
 or
 ```

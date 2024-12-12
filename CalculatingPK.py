@@ -5,12 +5,16 @@ from ctypes import windll
 from random import randint, choice
 import cv2
 import numpy as np
-import tensorflow as tf
 from PIL import Image, ImageDraw, ImageTk, ImageOps
-from tensorflow.keras import layers, models
+import tensorflow as tf
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 from tensorflow.keras.datasets import mnist
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import load_model
+from kerastuner.tuners import Hyperband
 
-DEBUG_FLAG = True  # Debug flag
+DEBUG_FLAG = False  # Debug flag
 
 script_directory = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 MODEL_PATH = os.path.join(script_directory, "model.h5")
@@ -20,7 +24,7 @@ WINDOW_HEIGHT = 1400
 ANSWER_WIDTH = 780
 ANSWER_HEIGHT = 610
 QUESTION_COUNT = 10
-TIMEOUT_SECONDS = 10
+TIMEOUT_SECONDS = 15
 WAIT_DURATION_CORRECT = 500
 WAIT_DURATION_WRONG = 1500
 BUTTON_WIDTH = 300
@@ -29,43 +33,87 @@ PEN_WIDTH = 16
 ICON_SIZE = 480
 
 
+def rectangle_filter(rects, percentage):
+    rects = [[x, y, x + w, y + h] for x, y, w, h in rects]
+    result = []
+    for i, rect in enumerate(rects):
+        is_contained = False
+        for j, other_rect in enumerate(rects):
+            if i == j:
+                continue
+            x1 = max(rect[0], other_rect[0])
+            y1 = max(rect[1], other_rect[1])
+            x2 = min(rect[2], other_rect[2])
+            y2 = min(rect[3], other_rect[3])
+            if (max(0, x2 - x1) * max(0, y2 - y1)) / (
+                    max(0, rect[2] - rect[0]) * max(0, rect[3] - rect[1])) > percentage:
+                is_contained = True
+
+        if not is_contained:
+            result.append(rect)
+    result = [[x1, y1, x2 - x1, y2 - y1] for x1, y1, x2, y2 in result]
+    return result
+
+
 class DigitRecognizer:
     def __init__(self):
         if os.path.exists(MODEL_PATH):
-            self.model = tf.keras.models.load_model(MODEL_PATH)
+            self.model = load_model(MODEL_PATH)
             print("Model loaded successfully!")
         else:
             print("No saved model found. Training a new model...")
             self.train_model()
 
+    def build_model(self, hp):
+        model = Sequential()
+
+        for i in range(hp.Int('conv_layers', 1, 3)):
+            model.add(Conv2D(
+                filters=hp.Choice(f'filters_{i}', [32, 64, 128]),
+                kernel_size=(3, 3),
+                activation='relu',
+                input_shape=(28, 28, 1) if i == 0 else None
+            ))
+            model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        model.add(Flatten())
+
+        for i in range(hp.Int('dense_layers', 1, 2)):
+            model.add(Dense(
+                units=hp.Choice(f'units_{i}', [64, 128, 256]),
+                activation='relu'
+            ))
+
+        model.add(Dense(10, activation='softmax'))
+
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+            loss='categorical_crossentropy',
+            metrics=['accuracy']
+        )
+        return model
+
     def train_model(self):
         (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-        x_train = x_train.astype("float32") / 255.0
-        x_test = x_test.astype("float32") / 255.0
-        x_train = np.expand_dims(x_train, -1)  # (60000, 28, 28, 1)
-        x_test = np.expand_dims(x_test, -1)  # (10000, 28, 28, 1)
+        x_train = x_train.reshape(x_train.shape[0], 28, 28, 1).astype('float32') / 255.0
+        x_test = x_test.reshape(x_test.shape[0], 28, 28, 1).astype('float32') / 255.0
 
-        y_train = tf.keras.utils.to_categorical(y_train, 10)
-        y_test = tf.keras.utils.to_categorical(y_test, 10)
+        y_train = to_categorical(y_train, 10)
+        y_test = to_categorical(y_test, 10)
 
-        self.model = models.Sequential([
-            layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
-            layers.MaxPooling2D((2, 2)),
-            layers.Conv2D(64, (3, 3), activation='relu'),
-            layers.MaxPooling2D((2, 2)),
-            layers.Conv2D(64, (3, 3), activation='relu'),
-            layers.Flatten(),
-            layers.Dense(64, activation='relu'),
-            layers.Dense(10, activation='softmax')
-        ])
+        tuner = Hyperband(
+            self.build_model,
+            objective='val_accuracy',
+            max_epochs=10,
+            factor=3,
+            directory='hyperband_tuning'
+        )
 
-        self.model.summary()
+        tuner.search(x_train, y_train, epochs=MODEL_EPOCHS, validation_split=0.1, verbose=1)
+        best_parameters = tuner.get_best_hyperparameters(num_trials=1)[0]
 
-        self.model.compile(optimizer='adam',
-                           loss='categorical_crossentropy',
-                           metrics=['accuracy'])
-
+        self.model = tuner.hypermodel.build(best_parameters)
         self.model.fit(x_train, y_train, epochs=MODEL_EPOCHS, batch_size=64, validation_split=0.1)
 
         self.model.save(MODEL_PATH)
@@ -80,10 +128,12 @@ class DigitRecognizer:
 
         image_array = np.array(image)
 
+        cv2.dilate(image_array, (int(PEN_WIDTH * 1.5), int(PEN_WIDTH * 1.5)))
+
         contours, _ = cv2.findContours(image_array, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         bounding_boxes = [cv2.boundingRect(c) for c in contours if cv2.contourArea(c) > 512]
-        bounding_boxes = sorted(bounding_boxes, key=lambda x: x[0])
+        bounding_boxes = rectangle_filter(sorted(bounding_boxes, key=lambda x: x[0]), 0.8)
 
         predictions = []
         idx = 0
@@ -125,14 +175,14 @@ def load_background_image(path):
 
 
 def rand_num(left, right):
-    if randint(1, 100) >= 30:  # 70% possibility
+    if randint(1, 10) >= 3:  # 70% possibility
         operation = choice(["+", "-", "*", "/"])
         if operation == "/":
             num2 = randint(2, 10)
             num1 = randint(1, 10) * num2
             return f"({num1} // {num2})"
         else:
-            num1, num2 = randint(1, 12), randint(1, 12)
+            num1, num2 = randint(1, 8), randint(1, 8)
             num1, num2 = max(num1, num2), min(num1, num2)
             return f"({num1} {operation} {num2})"
     else:
@@ -220,9 +270,11 @@ class CalculatingPKGui:
             self.question = question
         elif operation == "/":
             num2 = rand_num(2, 10)
+            if eval(num2) == 0:
+                num2 = randint(2, 10)
             answer = randint(1, 10)
             num1 = answer * eval(num2)
-            if choice([True, False]):  # add a remainder
+            if eval(num2) > 2 and choice([True, False]):  # add a remainder
                 remainder = randint(1, eval(num2) - 1)
                 question = f"{num1 + remainder} // {num2} = ? ... {remainder}"
             else:
