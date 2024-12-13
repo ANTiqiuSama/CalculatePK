@@ -105,7 +105,7 @@ class DigitRecognizer:
         tuner = Hyperband(
             self.build_model,
             objective='val_accuracy',
-            max_epochs=10,
+            max_epochs=MODEL_EPOCHS,
             factor=3,
             directory='hyperband_tuning'
         )
