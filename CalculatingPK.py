@@ -159,7 +159,7 @@ class DigitRecognizer:
             prediction = self.model.predict(digit_array)
             predictions.append(np.argmax(prediction))
 
-        print(f"Predicted Labels: {predictions}")
+        print(f"Predicted: {predictions}")
         return predictions
 
 
