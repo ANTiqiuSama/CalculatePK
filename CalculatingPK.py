@@ -12,7 +12,7 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import load_model
-from kerastuner.tuners import Hyperband
+from keras_tuner.tuners import Hyperband
 
 DEBUG_FLAG = False  # Debug flag
 
@@ -116,11 +116,11 @@ class DigitRecognizer:
         self.model = tuner.hypermodel.build(best_parameters)
         self.model.fit(x_train, y_train, epochs=MODEL_EPOCHS, batch_size=64, validation_split=0.1)
 
+        test_loss, test_acc = self.model.evaluate(x_test, y_test)
+        print(f"Test accuracy: {test_acc:.4f}")
+
         self.model.save(MODEL_PATH)
         print(f"Model saved successfully! Path: {MODEL_PATH}")
-
-        test_loss, test_acc = self.model.evaluate(x_test, y_test, verbose=2)
-        print(f"Test accuracy: {test_acc:.4f}")
 
     def recognize_digits(self, image):
         image = ImageOps.invert(image).convert("L")
@@ -194,7 +194,7 @@ class CalculatingPKGui:
         self.recognizer = recognizer
 
         self.window = window
-        self.window.title("Monkey CalculatingPK")
+        self.window.title("CalculatingPK")
         self.window.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         self.window.resizable(False, False)
 
@@ -245,7 +245,7 @@ class CalculatingPKGui:
         canvas = tk.Canvas(self.welcome_frame, width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
         canvas.pack(fill="both", expand=True)
         canvas.create_image(0, 0, anchor="nw", image=self.background_menu)
-        canvas.create_text(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4, text="Monkey Calculating PK",
+        canvas.create_text(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4, text="Calculating PK",
                            font=("Consolas", 32, "bold"), fill="#f0f0f0")
 
         start_button = tk.Button(self.welcome_frame,

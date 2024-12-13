@@ -7,7 +7,7 @@ import numpy as np
 import time
 
 script_directory = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-WINDOW_TITLE = "Monkey CalculatingPK"
+WINDOW_TITLE = "CalculatingPK"
 QUESTION_COUNT = 10
 BUTTON_WIDTH = 300
 BUTTON_HEIGHT = 100
@@ -26,8 +26,9 @@ QUESTION_REGION_HEIGHT = 80
 WINDOW_WIDTH = 850
 WINDOW_HEIGHT = 1400
 
-WAIT_DURATION = 1.0
+WAIT_DURATION = 1.2
 
+DEBUG_FLAG = False  # Debug flag
 
 def draw_number(num, x, y):
     digits = []
@@ -143,15 +144,16 @@ def main():
         # question_img=pyautogui.screenshot(region=question_region).convert('L').point(lambda x: 0 if x < 128 else 255)
         question_img = ImageOps.invert(pyautogui.screenshot(region=question_region).convert('L')).point(
             lambda x: 0 if x < 128 else 255)
-        question_img.save(f"question_{i}.png")
+        if DEBUG_FLAG:
+            question_img.save(f"question_{i}.png")
         question_text = image_to_str(np.array(question_img), char_data)
         question_text = question_text.split("=")[0].replace("×", "*").replace("÷", "/")
-        print(f"QUESTION_{i}: {question_text}")
+        print(f"question_{i}: {question_text}")
         draw_number(int(eval(question_text)), canvas_x, canvas_y)
         pyautogui.press('enter')
         time.sleep(WAIT_DURATION)
 
-    # pyautogui.moveTo(start_button_x, start_button_y, duration=MOVE_DURATION)
+    # pyautogui.moveTo(restart_button_x, restart_button_y, duration=MOVE_DURATION)
     # time.sleep(1)
     # pyautogui.click()
 
