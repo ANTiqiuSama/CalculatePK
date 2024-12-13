@@ -112,8 +112,25 @@ class DigitRecognizer:
 
         tuner.search(x_train, y_train, epochs=MODEL_EPOCHS, validation_split=0.1, verbose=1)
         best_parameters = tuner.get_best_hyperparameters(num_trials=1)[0]
-
         self.model = tuner.hypermodel.build(best_parameters)
+        
+#        self.model = Sequential([
+#            Conv2D(filter=32, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)),
+#            MaxPooling2D(pool_size=(2, 2)),
+#            Conv2D(filter=64, kernel_size=(3, 3), activation='relu'),
+#            MaxPooling2D(pool_size=(2, 2)),
+#            Conv2D(filter=64, kernel_size=(3, 3), activation='relu'),
+#            Flatten(),
+#            Dense(64, activation='relu'),
+#            Dense(10, activation='softmax')
+#        ])
+#
+#        self.model.summary()
+#
+#        self.model.compile(optimizer='adam',
+#                           loss='categorical_crossentropy',
+#                           metrics=['accuracy'])
+        
         self.model.fit(x_train, y_train, epochs=MODEL_EPOCHS, batch_size=64, validation_split=0.1)
 
         test_loss, test_acc = self.model.evaluate(x_test, y_test)
