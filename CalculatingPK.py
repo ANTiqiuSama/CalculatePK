@@ -148,7 +148,7 @@ class DigitRecognizer:
         contours, _ = cv2.findContours(image_array, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         bounding_boxes = [cv2.boundingRect(c) for c in contours if cv2.contourArea(c) > 512]
-        bounding_boxes = rectangle_filter(sorted(bounding_boxes, key=lambda x: x[0]), 0.8)
+        bounding_boxes = rectangle_filter(sorted(bounding_boxes, key=lambda x: x[0]), 0.6)
 
         predictions = []
         idx = 0
