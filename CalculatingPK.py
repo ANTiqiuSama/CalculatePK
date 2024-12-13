@@ -84,7 +84,7 @@ class DigitRecognizer:
                 activation='relu'
             ))
 
-        model.add(Dense(10, activation='softmax'))
+        model.add(Dense(units=10, activation='softmax'))
 
         model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
@@ -121,11 +121,9 @@ class DigitRecognizer:
 #            MaxPooling2D(pool_size=(2, 2)),
 #            Conv2D(filter=64, kernel_size=(3, 3), activation='relu'),
 #            Flatten(),
-#            Dense(64, activation='relu'),
-#            Dense(10, activation='softmax')
+#            Dense(units=64, activation='relu'),
+#            Dense(units=10, activation='softmax')
 #        ])
-#
-#        self.model.summary()
 #
 #        self.model.compile(optimizer='adam',
 #                           loss='categorical_crossentropy',
