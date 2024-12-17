@@ -287,7 +287,7 @@ class CalculatingPKGui:
         elif operation == "/":
             num2 = rand_num(2, 10)
             if eval(num2) == 0:
-                num2 = randint(2, 10)
+                num2 = str(randint(2, 10))
             answer = randint(1, 10)
             num1 = answer * eval(num2)
             if eval(num2) > 2 and choice([True, False]):  # add a remainder
