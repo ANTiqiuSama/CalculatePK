@@ -142,8 +142,9 @@ class DigitRecognizer:
         image = image.point(lambda p: p > 128 and 255)
 
         image_array = np.array(image)
-
-        cv2.dilate(image_array, (int(PEN_WIDTH * 1.5), int(PEN_WIDTH * 1.5)))
+        
+        element = cv2.getStructuringElement(cv2.MORPH_RECT, (int(PEN_WIDTH * 0.8), int(PEN_WIDTH * 0.8)))
+        image_array = cv2.dilate(image_array, kernel=element, iterations = 1)
 
         contours, _ = cv2.findContours(image_array, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
